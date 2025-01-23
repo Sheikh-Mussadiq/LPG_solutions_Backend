@@ -100,6 +100,7 @@ exports.createOrder = async (req, res) => {
             text-align: left;
             align-items: center;
             padding: 10px;
+            font-size: 16px;
             border: 1px solid #ddd;
         }
         table th {
@@ -112,7 +113,7 @@ exports.createOrder = async (req, res) => {
         }
         .total-price {
             margin: 20px 0;
-            font-size: 18px;
+            font-size: 20px;
             color: #333333;
         }
         .footer {
@@ -141,6 +142,7 @@ exports.createOrder = async (req, res) => {
                         <tr>
                             <th>#</th>
                             <th>Product</th>
+                            <th>Weight</th>
                             <th>Quantity</th>
                         </tr>
                     </thead>
@@ -151,10 +153,11 @@ exports.createOrder = async (req, res) => {
                             <tr>
                                 <td>${index + 1}</td>
                                 <td>
-                                    <img src="${item.product.images[0]}" alt="${item.product.name}" />
+                                    <img src="${item.product.image}" alt="${item.product.name}" />
                                     ${item.product.name}
                                 </td>
-                                <td>${item.quantity}</td>
+                                <td>${item.product.weight} KG</td>
+                                <td>${item.product.category === "refill" ? `${item.quantity} KG` : item.quantity}</td>
                             </tr>
                         `
                           )
