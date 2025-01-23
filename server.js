@@ -15,6 +15,9 @@ app.use(express.json());
 // Routes
 app.use('/api', router);
 
+app.get('/',(req,res)=>{
+    res.send("Backend running")
+})
 connectDB().then(()=>{
     app.listen(PORT,()=>{
         console.log("connnect to DB")
