@@ -1,0 +1,225 @@
+// index.js
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const router = require('./routes');
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// MongoDB Connection
+mongoose.connect('mongodb://localhost:27017/ecommerce', {
+    useNewUrlParser: true,
+    useUnifiedTopifier: true
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('MongoDB connection error:', err));
+
+// Routes
+app.use('/api', router);
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
+// models/Product.js
+const mongoose = require('mongoose');
+
+const productSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    category: {
+        type: String,
+        required: true
+    },
+    weight: {
+        type: Number,
+        required: true
+    },
+    price: {
+        type: Number,
+        required: true
+    },
+    images: [{
+        type: String,
+        required: true
+    }],
+    features: {
+        type: String,
+        required: true
+    }
+}, { timestamps: true });
+
+module.exports = mongoose.model('Product', productSchema);
+
+// models/Order.js
+const mongoose = require('mongoose');
+
+const orderSchema = new mongoose.Schema({
+    userName: {
+        type: String,
+        required: true
+    },
+    userEmail: {
+        type: String,
+        required: true
+    },
+    userPhone: {
+        type: String,
+        required: true
+    },
+    products: [{
+        product: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Product',
+            required: true
+        },
+        quantity: {
+            type: Number,
+            required: true
+        }
+    }]
+}, { timestamps: true });
+
+module.exports = mongoose.model('Order', orderSchema);
+
+// controllers/productController.js
+const Product = require('../models/Product');
+
+exports.createProduct = async (req, res) => {
+    try {
+        const product = new Product(req.body);
+        await product.save();
+        res.status(201).json(product);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+exports.getProducts = async (req, res) => {
+    try {
+        const products = await Product.find();
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.getProduct = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        res.status(200).json(product);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.updateProduct = async (req, res) => {
+    try {
+        const product = await Product.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        );
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        res.status(200).json(product);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+exports.deleteProduct = async (req, res) => {
+    try {
+        const product = await Product.findByIdAndDelete(req.params.id);
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        res.status(200).json({ message: 'Product deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// controllers/orderController.js
+const Order = require('../models/Order');
+const nodemailer = require('nodemailer');
+
+// Configure nodemailer
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'your-email@gmail.com', // Replace with your email
+        pass: 'your-password' // Replace with your password or app-specific password
+    }
+});
+
+exports.createOrder = async (req, res) => {
+    try {
+        const order = new Order(req.body);
+        await order.save();
+        
+        // Populate product details for email
+        const populatedOrder = await Order.findById(order._id).populate('products.product');
+        
+        // Create email content
+        const emailContent = `
+            Order Confirmation
+            
+            Dear ${order.userName},
+            
+            Thank you for your order! Here are your order details:
+            
+            Order ID: ${order._id}
+            Products:
+            ${populatedOrder.products.map(item => 
+                `- ${item.product.name} (Quantity: ${item.quantity})`
+            ).join('\n')}
+            
+            We will process your order shortly.
+            
+            Best regards,
+            Your Store Team
+        `;
+        
+        // Send confirmation email
+        await transporter.sendMail({
+            from: 'your-email@gmail.com',
+            to: order.userEmail,
+            subject: 'Order Confirmation',
+            text: emailContent
+        });
+        
+        res.status(201).json(order);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+// routes/index.js
+const express = require('express');
+const router = express.Router();
+const productController = require('../controllers/productController');
+const orderController = require('../controllers/orderController');
+
+// Product routes
+router.post('/products', productController.createProduct);
+router.get('/products', productController.getProducts);
+router.get('/products/:id', productController.getProduct);
+router.put('/products/:id', productController.updateProduct);
+router.delete('/products/:id', productController.deleteProduct);
+
+// Order routes
+router.post('/orders', orderController.createOrder);
+
+module.exports = router;
