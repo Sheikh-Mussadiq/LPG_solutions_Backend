@@ -13,13 +13,11 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
       host: "smtpout.secureserver.net",
     port: 465, // Secure port for GoDaddy SMTP
-    secure: true, // Use SSL
+    secure: true, // Use SSLz
     auth: {
         user: process.env.MAIL_USERNAME, 
         pass: process.env.MAIL_PASSWORD 
-    },
-
-    
+    },  
 });
 
 exports.createOrder = async (req, res) => {

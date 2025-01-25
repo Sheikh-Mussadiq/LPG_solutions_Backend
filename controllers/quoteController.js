@@ -5,12 +5,14 @@ exports.sendQuoteRequest = async (req, res) => {
     const { businessName, contactPerson, email, phone, businessType, requiredQuantity, message } = req.body;
 
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.MAIL_USERNAME, 
-            pass: process.env.MAIL_PASSWORD 
-        }
-    }); 
+      host: "smtpout.secureserver.net",
+    port: 465, // Secure port for GoDaddy SMTP
+    secure: true, // Use SSL
+    auth: {
+        user: process.env.MAIL_USERNAME, 
+        pass: process.env.MAIL_PASSWORD 
+    },  
+});
 
     const htmlContent = `
       <h2>New Quote Request</h2>
