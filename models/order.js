@@ -13,6 +13,14 @@ const orderSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    userCity: {
+        type: String,
+        required: true
+    },
+    userAddress: {
+        type: String,
+        required: true
+    },
     products: [{
         product: {
             type: mongoose.Schema.Types.ObjectId,

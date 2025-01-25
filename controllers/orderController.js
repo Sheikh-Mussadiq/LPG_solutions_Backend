@@ -2,49 +2,33 @@ const Order = require('../models/order');
 const nodemailer = require('nodemailer');
 
 // Configure nodemailer
+// const transporter = nodemailer.createTransport({
+//     service: 'gmail',
+//     auth: {
+//         user: process.env.MAIL_USERNAME, 
+//         pass: process.env.MAIL_PASSWORD 
+//     }
+// }); 
+
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+      host: "smtpout.secureserver.net",
+    port: 465, // Secure port for GoDaddy SMTP
+    secure: true, // Use SSL
     auth: {
         user: process.env.MAIL_USERNAME, 
         pass: process.env.MAIL_PASSWORD 
-    }
-}); 
+    },
+    logger: true,
+    debug: true,
+    
+});
 
 exports.createOrder = async (req, res) => {
     try {
         const order = new Order(req.body);
         await order.save();
         
-        // Populate product details for email
         const populatedOrder = await Order.findById(order._id).populate('products.product');
-        
-        // Create email content
-        // const emailContent = `
-        //     Order Confirmation
-            
-        //     Dear ${order.userName},
-            
-        //     Thank you for your order! Here are your order details:
-            
-        //     Order ID: ${order._id}
-        //     Products:
-        //     ${populatedOrder.products.map(item => 
-        //         `- ${item.product.name} (Quantity: ${item.quantity})`
-        //     ).join('\n')}
-            
-        //     We will process your order shortly.
-            
-        //     Best regards,
-        //     LPG Solutions
-        // `;
-        
-        // // Send confirmation email
-        // await transporter.sendMail({
-        //     from: "LPG Solutions",
-        //     to: order.userEmail,
-        //     subject: 'Order Confirmation - LPG Solutions',
-        //     text: emailContent
-        // });
         
         const emailHTMLContent = `
 <!DOCTYPE html>
@@ -133,8 +117,9 @@ exports.createOrder = async (req, res) => {
         <div class="content">
             <h2>Dear ${order.userName},</h2>
             <p>Thank you for your order! Here are your order details:</p>
+            <p><strong>City:</strong> ${order.userCity}</p>
+            <p><strong>Address:</strong> ${order.userAddress}</p>
             <p><strong>Order ID:</strong> ${order._id}</p>
-
             <div class="table-container">
                 <p><strong>Products:</strong></p>
                 <table>
@@ -167,13 +152,7 @@ exports.createOrder = async (req, res) => {
             </div>
 
             <div class="total-price">
-                <p><strong>Total Price:</strong> ${populatedOrder.products
-                  .reduce(
-                    (total, item) =>
-                      total + item.product.price * item.quantity,
-                    0
-                  )
-                  .toFixed(2)} PKR</p>
+                <p><strong>Total Price:</strong> ${order.total.toFixed(2)} PKR</p>
             </div>
 
             <p>We will process your order shortly.</p>
@@ -188,8 +167,15 @@ exports.createOrder = async (req, res) => {
 `;
 
 await transporter.sendMail({
-    from: "LPG Solutions <your-email@example.com>",
+    from: "LPG Solutions <info@lpgsolutions.shop>",
     to: order.userEmail,
+    subject: 'Order Confirmation - LPG Solutions',
+    html: emailHTMLContent
+});
+
+await transporter.sendMail({
+    from: "LPG Solutions <info@lpgsolutions.shop>",
+    to: process.env.MAIL_USERNAME,
     subject: 'Order Confirmation - LPG Solutions',
     html: emailHTMLContent
 });
