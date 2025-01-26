@@ -60,7 +60,7 @@ exports.sendQuoteRequest = async (req, res) => {
 });
 
     const htmlContent = `
-      <h2>New Quote Request</h2>
+      <h2>New Message from ${name}</h2>
       <table>
         <tr><td><strong>Contact Person:</strong></td><td>${name}</td></tr>
         <tr><td><strong>Email:</strong></td><td>${email}</td></tr>
