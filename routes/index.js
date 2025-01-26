@@ -16,4 +16,8 @@ router.post('/orders', orderController.createOrder);
 // Quote routes
 router.post('/quote', quoteController.sendQuoteRequest)
 
+// Contact Us routes
+router.post('/contact', quoteController.sendContactUs)
+
+
 module.exports = router;
