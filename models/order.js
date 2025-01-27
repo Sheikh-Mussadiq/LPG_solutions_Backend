@@ -21,22 +21,43 @@ const orderSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    products: [{
-        product: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product',
-            required: true
-        },
-        quantity: {
+    products: [
+        {
+          name: {
+            type: String,
+            required: true,
+          },
+          price: {
             type: Number,
-            required: true
-        }
-    }],
+            required: true,
+          },
+          totalPrice: {
+            type: Number,
+            required: true,
+          },
+          image: {
+            type: String,
+            required: true,
+          },
+          category: {
+            type: String,
+            required: true,
+          },
+          weight: {
+            type: String,
+            required: false,
+          },
+          quantity: {
+            type: Number,
+            required: true,
+          },
+        },
+      ],
     total: {
         type: Number,
         required: true
     }
-    
+
 
 }, { timestamps: true });
 

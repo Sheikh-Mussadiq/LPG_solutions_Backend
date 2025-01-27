@@ -23,9 +23,9 @@ const transporter = nodemailer.createTransport({
 exports.createOrder = async (req, res) => {
     try {
         const order = new Order(req.body);
+        // console.log(order);
         await order.save();
         
-        const populatedOrder = await Order.findById(order._id).populate('products.product');
         
         const emailHTMLContent = `
 <!DOCTYPE html>
@@ -39,7 +39,7 @@ exports.createOrder = async (req, res) => {
             padding: 0;
         }
         .email-container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 20px auto;
             background-color: #ffffff;
             border-radius: 10px;
@@ -125,21 +125,25 @@ exports.createOrder = async (req, res) => {
                             <th>#</th>
                             <th>Product</th>
                             <th>Weight</th>
+                            <th>Price</th>
                             <th>Quantity</th>
+                            <th>Total Price</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${populatedOrder.products
+                        ${order.products
                           .map(
                             (item, index) => `
                             <tr>
                                 <td>${index + 1}</td>
                                 <td>
-                                    <img src="${item.product.image}" alt="${item.product.name}" />
-                                    ${item.product.name}
+                                    <img src="${item.image}" alt="LPG Solutions ${item.name}" />
+                                    ${item.name}
                                 </td>
-                                <td>${item.product.weight} KG</td>
-                                <td>${item.product.category === "refill" ? `${item.quantity} KG` : item.quantity}</td>
+                                <td>${item.category === "refill" ? `${item.quantity} KG` : item.category === "accessories" ? "" : `${item.weight} KG`} </td>
+                                <td>${item.price} PKR</td>
+                                <td>${item.quantity}</td>
+                                <td>${item.totalPrice} PKR</td>
                             </tr>
                         `
                           )
